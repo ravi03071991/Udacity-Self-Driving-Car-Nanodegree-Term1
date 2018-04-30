@@ -1,0 +1,148 @@
+---
+title: "Vehicle Detection and Tracking"
+author: "Ravi Theja"
+date: "4 September 2017"
+output: html_document
+---
+
+## Goal
+
+### Udacity Self-Driving Car Engineer Nanodegree. Project: Vehicle Detection and Tracking
+
+This Project is the fifth and the last in the Udacity Self-Driving Car Nanodegree program Term1. The main goal of the project is to create a software pipeline to identify vehicles in a video from a front-facing camera on a car.
+
+The steps of this project are the following:
+
+* Perform a Histogram of Oriented Gradients (HOG) feature extraction on a labeled training set of images and train a classifier Linear SVM classifier
+* Optionally, you can also apply a color transform and append binned color features, as well as histograms of color, to your HOG feature vector. 
+* Note: for those first two steps don't forget to normalize your features and randomize a selection for training and testing.
+* Implement a sliding-window technique and use your trained classifier to search for vehicles in images.
+* Run your pipeline on a video stream (start with the test_video.mp4 and later implement on full project_video.mp4) and create a heat map of recurring detections frame by frame to reject outliers and follow detected vehicles.
+* Estimate a bounding box for vehicles detected.
+
+[//]: # (Image References)
+[image1]: ./output_images/data_visualization.png
+[image2]: ./output_images/hog_visualization.png
+[image3]: ./output_images/sliding_windows.png
+[image4]: ./output_images/windows.png
+[image7]: ./output_images/HeatMapsAndBoundingBoxes.png
+[image8]: ./output_images/boundingBox1.png
+[image9]: ./output_images/boundingBox3.png
+[image10]: ./output_images/boundingBox6.png
+[image11]: ./output_images/color_hist_vis.png
+[image12]: ./output_images/bin_spatial1.png
+[image13]: ./output_images/bin_spatial2.png
+[image14]: ./output_images/bin_spatial3.png
+[image15]: ./output_images/bin_spatial11.png
+[image16]: ./output_images/bin_spatial22.png
+[image17]: ./output_images/bin_spatial33.png
+[video1]: ./project_video.mp4
+
+### Files Included
+
+These are the files that included as a part of submission:
+
+* VehicleDetectionAndTracking.ipynb
+
+* output_images
+
+* test_images
+
+* test_video
+
+* writeup.Rmd
+
+* writeup.html
+
+### Data 
+
+I have used the [Vehicle](https://s3.amazonaws.com/udacity-sdc/Vehicle_Tracking/vehicles.zip) and [Non-Vehicle](https://s3.amazonaws.com/udacity-sdc/Vehicle_Tracking/non-vehicles.zip) provided by the Udacity. Here is an example of some of the images from both the Vehicle and Non-Vehicle data sets.
+
+![][image1]
+
+### Histogram of Oriented Gradients(HOG)
+
+#### Explain how (and identify where in your code) you extracted HOG features from the training images.
+
+Through a bit of trial and error I found a set of HOG parameters. The code for extracting these HOG features from an image is defined by the method *get_hog_features* and is contained in the cell titled **Function to return HOG features and visualization**
+ The figure below shows a comparison of a car image and its associated histogram of oriented gradients (HOG).
+
+![][image2]
+
+| Parameter | Value  |
+|----------:|:-------|
+| Color Space | YCrCb |
+| Orientations | 10 |
+| Pixels per Cell | 8 |
+| Cells per Block | 2 |
+| HOG Channel | ALL |
+
+#### Explain how you settled on your final choice of HOG parameters.
+I selected the final set of HOG paramters based on the performance of Support Vector Machine (SVM) classifier produced using them. 
+
+#### Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
+
+In the section titled **Training the classifier and testing it** I trained a linear SVM with the default classifier parameters and using HOG features, Spatial features and Color features and was able to achieve a test accuracy of 98.73%.
+
+### Function to compute Color Histogram features and visualizing the results
+
+The **color_hist** function computes Color Histogram features labeled *hist_features*. This function returns concatenated color channels by default and separate color channels if the **vis == True** flag is called. Below is the visualization of the **'R' 'G' and 'B'** channels from a random car_image.
+
+![][image11]
+
+### Function to return Spatial Binning of Color features and visualizing the results
+
+The **bin_spatial** function takes in an image, a color space, and a new image size and returns a feature vector. Useful for extracting color features from low resolution images. Below is an example of spatially binned color features extracted from an image before and after resizing.
+![][image12]
+![][image13]
+![][image14]
+![][image15]
+![][image16]
+![][image17]
+
+### Sliding Window Search
+
+#### Sliding Window Implementation
+
+The slide_window function takes in an image, start and stop positions, window size and overlap fraction and returns a list of bounding boxes for the search windows, which will then be passed to draw boxes. Below is an illustration of the slide_window function with adjusted y_start_stop values [400, 656]
+
+![][image3]
+
+#### Show some examples of test images to demonstrate how your pipeline is working. What did you do to optimize the performance of your classifier?
+
+Some on the test images passing through the pipeline are displayed here:
+![][image8]
+![][image9]
+![][image10]
+
+The final implementation performs very well, identifying the near-field vehicles in each of the images.
+
+I used different values for *pixels_per_cell* parameter and different combinations of features to improve the accuracy of my model and finally achieved 98.87%.
+
+
+### Function to extract features from a single image window
+
+The **single_img_features** function is very similar to the **extract_features** function. One extracts HOG and color features from a list of images while the other extracts them from one image at a time. The extracted features are passed on to the **search_windows** function which searches windows for matches defined by the classifier. 
+
+![][image4]
+
+### Adding Heatmaps and Bounding Boxes
+
+The **add_heat** function creates a map of positive *car* results found in an image by adding all the pixels found inside of search boxes. More boxes means more *hot* pixels. The **apply_threshold** function defines how many search boxes have to overlap for the pixels to be counted as *hot*, as a result the *false-positve* search boxes can be discarded. The **draw_labeled_bboxes** function takes in the *hot* pixel values from the image and converts them into labels then draws bounding boxes around those labels. Below is an example of these functions at work.
+
+![][image7]
+
+
+## Video Implementation
+
+#### Provide a link to your final video output. Your pipeline should perform reasonably well on the entire project video (somewhat wobbly or unstable bounding boxes are ok as long as you are identifying the vehicles most of the time with minimal false positives.) 
+
+Here's a [link to my video result][video1]
+
+### Discussion
+
+#### Briefly discuss any problems / issues you faced in your implementation of this project. Where will your pipeline likely fail? What could you do to make it more robust?
+
+The pipeline is probably most likely to fail in cases where vehicles (or the HOG features thereof) don't resemble those in the training dataset, but lighting and environmental conditions might also play a role.
+
+I believe that the better approach, would be to combine a very high accuracy model with high overlap in the search windows.
